@@ -70,3 +70,43 @@ def normalize_pixels_coordinates(points_img_a, points_img_b):
     norm_points_img_a = (np.matmul(T_mat, points_img_a.T)).T[:,0:2]
     norm_points_img_b = (np.matmul(T_mat, points_img_b.T)).T[:,0:2]
     return norm_points_img_a, norm_points_img_b, T_mat
+
+def calculate_homography(points_img_a, points_img_b):
+    '''Function to calculate the homography matrix from point corresspondences using Direct Linear Transformation
+        Homography H = [h1 h2 h3; 
+                        h4 h5 h6;
+                        h7 h8 h9]
+        u, v ---> normalized point in Image A
+        x, y ---> corresponding normalized point in Image B then,
+        with 4 point correspondences the DLT equation is:
+            A.h = 0
+        where A = [-x1 -y1 -1 0 0 0 u1*x1 u1*y1 u1;
+                   0 0 0 -x1 -y1 -1 v1*x1 v1*y1 v1;
+                   ...............................;
+                   ...............................;
+                   -x4 -y4 -1 0 0 0 u4*x4 u4*y4 u4;
+                   0 0 0 -x4 -y4 -1 v4*x4 v4*y4 v4]
+        This equation is then solved using SVD
+    
+    Args:
+        points_img_a (numpy array): of shape (4, 2) representing four normalized pixel coordinate points (x, y) in Image A
+        points_img_b (numpy array): of shape (4, 2) representing four normalized corresponding pixel coordinates (x', y') in Image B
+    
+    Returns:
+        Hom_mat: A (3, 3) numpy array of estimated homography
+    '''
+    # concatenate the two numpy points array to get 4 columns (x y x' y')
+    points_ab = np.concatenate((points_img_a, points_img_b), axis=1)
+    A = []
+    # fill the A matrix by looping through each row of points_ab containing u, v, x, y
+    # each row in the points_ab would fill two rows in the A matrix
+    for u, v, x, y in points_ab:
+        A.append([-x, -y, -1, 0, 0, 0, u*x, u*y, u])
+        A.append([0, 0, 0, -x, -y, -1, v*x, v*y, v])
+    
+    A = np.array(A)
+    U, S, Vt = np.linalg.svd(A)
+
+    # soultion is the last column of V which means the last row of Vt
+    Hom_mat = Vt[-1,:].reshape(3,3)
+    return Hom_mat
