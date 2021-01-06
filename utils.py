@@ -105,7 +105,7 @@ def calculate_homography(points_img_a, points_img_b):
         A.append([0, 0, 0, -x, -y, -1, v*x, v*y, v])
     
     A = np.array(A)
-    U, S, Vt = np.linalg.svd(A)
+    _, _, Vt = np.linalg.svd(A)
 
     # soultion is the last column of V which means the last row of Vt
     Hom_mat = Vt[-1,:].reshape(3,3)
