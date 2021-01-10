@@ -76,3 +76,40 @@ def calculate_homography(points_img_l, points_img_r):
     # soltion is the last column of v which means the last row of its transpose v_t
     h_mat = v_t[-1, :].reshape(3,3)
     return h_mat
+
+
+def compute_outliers(h_mat, points_img_l, points_img_r, threshold=3):
+    '''Function to compute the error in the Homography matrix using the matching points in
+        image A and image B
+    
+    Args:
+        h_mat (numpy array): of shape (3, 3) representing the homography that transforms points in right image to the left image
+        points_img_l (numpy array): of shape (n, 2) representing pixel coordinate points (u, v) in the left image
+        points_img_r (numpy array): of shape (n, 2) representing pixel coordinates (x, y) in the right image
+        theshold (int): a number that represents the allowable euclidean distance (in pixels) between the transformed pixel coordinate from
+            the right image to the supposed to be pixel coordinate in the left image, to be conisdered outliers
+    
+    Returns:
+        error: a scalar float representing the error in the Homography matrix
+    '''
+    num_points = points_img_l.shape[0]
+    outliers_count = 0
+
+    # add a 3rd column of ones to the point numpy representation to make use of matrix multiplication
+    ones_col = np.ones((num_points,1))
+    points_img_l = np.concatenate((points_img_l, ones_col), axis=1)
+    points_img_r = np.concatenate((points_img_r, ones_col), axis=1)
+    points_img_r_hat = np.matmul(h_mat, points_img_r.T).T
+    points_img_r_hat = points_img_r_hat / (points_img_r_hat[:,2]).reshape(-1,1)
+    # let x, y be coordinate representation of points in the left image
+    # let x_hat, y_hat be the coordinate representation of transformed points of the right image with resect to left image
+    x = points_img_l[:, 0]
+    y = points_img_l[:, 1]
+    x_hat = points_img_r_hat[:, 0]
+    y_hat = points_img_r_hat[:, 1]
+    euclid_dis = np.sqrt(np.power((x_hat - x), 2) + np.power((y_hat - y), 2)).reshape(-1)
+    for dis in euclid_dis:
+        if dis > threshold:
+            outliers_count += 1
+    return outliers_count
+    
