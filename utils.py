@@ -112,4 +112,39 @@ def compute_outliers(h_mat, points_img_l, points_img_r, threshold=3):
         if dis > threshold:
             outliers_count += 1
     return outliers_count
+
+
+def compute_homography_ransac(matches_l, matches_r):
+    """Function to estimate the best homography matrix using RANSAC on potentially matching
+    points.
     
+    Args:
+        matches_l (numpy array): of shape (n, 2) representing the coordinates
+            of possibly matching points in the left image
+        matches_r (numpy array): of shape (n, 2) representing the coordinates
+            of possibly matching points in the right image
+
+    Returns:
+        best_h_mat: A numpy array of shape (3, 3) representing the best homography
+            matrix that transforms points in right image to points in left image
+    """
+    num_all_matches =  matches_l.shape[0]
+    # RANSAC parameters
+    SAMPLE_SIZE = 5 #number of point correspondances for estimation of Homgraphy
+    SUCCESS_PROB = 0.995 #required probabilty of finding H with all samples being inliners 
+    min_iterations = int(np.log(1.0 - SUCCESS_PROB)/np.log(1 - 0.5**SAMPLE_SIZE))
+    
+    # Let the initial error be large i.e consider all matched points as outliers
+    lowest_outliers_count = num_all_matches
+    best_h_mat = None
+    best_i = 0 # just to know in which iteration the best h_mat was found
+
+    for i in range(min_iterations):
+        rand_ind = np.random.permutation(range(num_all_matches))[:SAMPLE_SIZE]
+        h_mat = calculate_homography(matches_l[rand_ind], matches_r[rand_ind])
+        outliers_count = compute_outliers(h_mat, matches_l, matches_r)
+        if outliers_count < lowest_outliers_count:
+            best_h_mat = h_mat
+            lowest_outliers_count = outliers_count
+            best_i = i
+    return best_h_mat
