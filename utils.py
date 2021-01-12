@@ -150,3 +150,110 @@ def compute_homography_ransac(matches_a, matches_b):
             best_i = i
     return best_h_mat
 
+def get_crop_points(h_mat, orig_img_a, orig_img_b, stich_direc):
+    """Function to find the pixel corners to crop the stiched image such that the black space 
+        in the stiched image is removed.
+        The black space could be because either image B is not of the same dimensions as image A
+        or image B is skewed after homographic transformation.
+        Example: 
+                  (Horizontal stiching)
+                ____________                     _________________
+                |           |                    |                |
+                |           |__________          |                |
+                |           |         /          |       A        |
+                |     A     |   B    /           |________________|
+                |           |       /                |          | 
+                |           |______/                 |    B     |
+                |___________|                        |          |
+                                                     |__________|  <-imagine slant bottom edge
+        
+        This function returns the corner points to obtain the maximum area inside A and B combined and making
+        sure the edges are straight (i.e horizontal and veritcal). 
+
+        Args:
+            h_mat (numpy array): of shape (3, 3) representing the homography from image B to image A
+            orig_img_a (numpy array): of shape (h, w, c) representing image A
+            orig_img_b (numpy array): of shape (h, w, c) representing image B
+
+        Returns:
+            x_start (int): the x pixel-cordinate to start the crop on the stiched image
+            y_start (int): the x pixel-cordinate to start the crop on the stiched image
+            x_end (int): the x pixel-cordinate to end the crop on the stiched image
+            y_end (int): the y pixel-cordinate to end the crop on the stiched image          
+    """
+    img_a_h, img_a_w, _ = orig_img_a.shape
+    img_b_h, img_b_w, _ = orig_img_b.shape
+
+    # find out where the four corners of the right image are projected with h_mat on the left image pixel coordinate plane
+    """
+    Arrange the 4 corners (with a column of ones) of image B into a matrix so that matrix multiplication can be used to transform all at once
+    corners = [top_left_x, top_left_y, 1;
+               top_right_x, top_right_y, 1;
+               bottom_right_x, bottom_right_y, 1;
+               bottom_left_x, bottom_left_y, 1]
+    """
+    orig_corners_img_b = np.array([[0, 0, 1],
+                                       [img_b_w - 1, 0, 1],
+                                       [img_b_w - 1, img_b_h - 1, 1],
+                                       [0, img_b_h - 1, 1]])
+    
+    transfm_corners_img_b = np.matmul(h_mat, orig_corners_img_b.T).T
+    transfm_corners_img_b = transfm_corners_img_b / transfm_corners_img_b[:,2].reshape(-1,1)
+
+    #extract the four corners of transformed corners of image B
+    top_lft_x_hat = transfm_corners_img_b[0,0]
+    top_lft_y_hat = transfm_corners_img_b[0,1]
+    top_rht_x_hat = transfm_corners_img_b[1,0]
+    top_rht_y_hat = transfm_corners_img_b[1,1]
+    btm_rht_x_hat = transfm_corners_img_b[2,0]
+    btm_rht_y_hat = transfm_corners_img_b[2,1]
+    btm_lft_x_hat = transfm_corners_img_b[3,0]
+    btm_lft_y_hat = transfm_corners_img_b[3,1]
+
+    # initialize the crop points
+    x_start = None
+    x_end = None
+    y_start = None
+    y_end = None
+
+    if stich_direc == 1: # 1 is horizontal
+        x_start = 0 # since left image (image A) will be original and will have vertical edge
+        if (top_lft_y_hat > 0) and (top_lft_y_hat > top_rht_y_hat):
+            y_start = top_lft_y_hat
+        elif (top_rht_y_hat > 0) and (top_rht_y_hat > top_lft_y_hat):
+            y_start = top_rht_y_hat
+        else:
+            y_start = 0
+        
+        if (btm_lft_y_hat < img_a_h - 1) and (btm_lft_y_hat < btm_rht_y_hat):
+            y_end = btm_lft_y_hat
+        elif (btm_rht_y_hat < img_a_h - 1) and (btm_rht_y_hat < btm_lft_y_hat):
+            y_end = btm_rht_y_hat
+        else:
+            y_end = img_a_h - 1
+
+        if (top_rht_x_hat < btm_rht_x_hat):
+            x_end = top_rht_x_hat
+        else:
+            x_end = btm_rht_x_hat
+    else: # when stiching images in the vertical direction
+        y_start = 0 # since top image (image A) will be original and will have horizontal edge
+        if (top_lft_x_hat > 0) and (top_lft_x_hat > btm_lft_x_hat):
+            x_start = top_lft_x_hat
+        elif (btm_lft_x_hat > 0) and (btm_lft_x_hat > top_lft_x_hat):
+            x_start = btm_lft_x_hat
+        else:
+            x_start = 0
+        
+        if (top_rht_x_hat < img_a_w - 1) and (top_rht_x_hat < btm_rht_x_hat):
+            x_end = top_rht_x_hat
+        elif (btm_rht_x_hat < img_a_w - 1) and (btm_rht_x_hat < top_rht_x_hat):
+            x_end = btm_rht_x_hat
+        else:
+            x_end = 0
+
+        if (btm_lft_y_hat < btm_rht_y_hat):
+            y_end = btm_lft_y_hat
+        else:
+            y_end = btm_rht_y_hat
+    return int(x_start), int(y_start), int(x_end), int(y_end)
