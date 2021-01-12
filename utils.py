@@ -5,8 +5,8 @@ def get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8):
     '''Function to get matched keypoints from two images using ORB
 
     Args:
-        img_a_gray (numpy array): of shape (H, W, C) with opencv representation of image A (i.e C: B,G,R)
-        img_b_gray (numpy array): of shape (H, W, C) with opencv representation of image B (i.e C: B,G,R)
+        img_a_gray (numpy array): of shape (H, W) representing grayscale image A
+        img_b_gray (numpy array): of shape (H, W) representing grayscale image B
         num_keypoints (int): number of points to be matched (default=100)
         threshold (float): can be used to filter strong matches only. Lower the value, stronger the requirements and hence fewer matches.
     Returns:
@@ -150,7 +150,7 @@ def compute_homography_ransac(matches_a, matches_b):
             best_i = i
     return best_h_mat
 
-def get_crop_points(h_mat, orig_img_a, orig_img_b, stich_direc):
+def get_crop_points(h_mat, img_a, img_b, stich_direc):
     """Function to find the pixel corners to crop the stiched image such that the black space 
         in the stiched image is removed.
         The black space could be because either image B is not of the same dimensions as image A
@@ -170,19 +170,20 @@ def get_crop_points(h_mat, orig_img_a, orig_img_b, stich_direc):
         This function returns the corner points to obtain the maximum area inside A and B combined and making
         sure the edges are straight (i.e horizontal and veritcal). 
 
-        Args:
-            h_mat (numpy array): of shape (3, 3) representing the homography from image B to image A
-            orig_img_a (numpy array): of shape (h, w, c) representing image A
-            orig_img_b (numpy array): of shape (h, w, c) representing image B
+    Args:
+        h_mat (numpy array): of shape (3, 3) representing the homography from image B to image A
+        img_a (numpy array): of shape (h, w, c) representing image A
+        img_b (numpy array): of shape (h, w, c) representing image B
+        stich_direc (int): 0 when stiching vertically and 1 when stiching horizontally
 
-        Returns:
-            x_start (int): the x pixel-cordinate to start the crop on the stiched image
-            y_start (int): the x pixel-cordinate to start the crop on the stiched image
-            x_end (int): the x pixel-cordinate to end the crop on the stiched image
-            y_end (int): the y pixel-cordinate to end the crop on the stiched image          
+    Returns:
+        x_start (int): the x pixel-cordinate to start the crop on the stiched image
+        y_start (int): the x pixel-cordinate to start the crop on the stiched image
+        x_end (int): the x pixel-cordinate to end the crop on the stiched image
+        y_end (int): the y pixel-cordinate to end the crop on the stiched image          
     """
-    img_a_h, img_a_w, _ = orig_img_a.shape
-    img_b_h, img_b_w, _ = orig_img_b.shape
+    img_a_h, img_a_w, _ = img_a.shape
+    img_b_h, img_b_w, _ = img_b.shape
 
     # find out where the four corners of the right image are projected with h_mat on the left image pixel coordinate plane
     """
