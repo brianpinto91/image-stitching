@@ -2,4 +2,7 @@ __pycache__
 *.pyc
 .ipynb_checkpoints
 develop.ipynb
-img/*
+imgstich/img/*
+build/*
+dist/*
+imgstich.egg-info
