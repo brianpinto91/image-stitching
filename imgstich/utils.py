@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 import re
-import exceptions
+from imgstich import exceptions
 
 MINIMUM_MATCH_POINTS = 20
 
@@ -313,7 +313,7 @@ def check_imgfile_validity(folder, filenames):
     """
     for file in filenames:
         full_file_path = os.path.join(folder, file)
-        regex = "([^\\s]+(\\.(?i)(jpe?g|png))$)"
+        regex = "([^\\s]+(\\.(?i:(jpe?g|png)))$)"
         p = re.compile(regex)
 
         if not os.path.isfile(full_file_path):
