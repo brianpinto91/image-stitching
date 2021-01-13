@@ -1,5 +1,10 @@
 import cv2
 import numpy as np
+import os
+import re
+import exceptions
+
+MINIMUM_MATCH_POINTS = 20
 
 def get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8):
     '''Function to get matched keypoints from two images using ORB
@@ -34,6 +39,10 @@ def get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8):
     for match in good_matches_list:
         good_kp_a.append(kp_a[match.queryIdx].pt) # keypoint in image A
         good_kp_b.append(kp_b[match.trainIdx].pt) # matching keypoint in image B
+    
+    if len(good_kp_a) < MINIMUM_MATCH_POINTS:
+        raise exceptions.NotEnoughMatchPointsError(len(good_kp_a), MINIMUM_MATCH_POINTS)
+    
     return np.array(good_kp_a), np.array(good_kp_b)
 
 
@@ -258,3 +267,53 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
         else:
             y_end = btm_rht_y_hat
     return int(x_start), int(y_start), int(x_end), int(y_end)
+
+def stich_images(img_a, img_b, stich_direc):
+    """Function to stich image B to image A in the mentioned direction
+
+    Args:
+        img_a (numpy array): of shape (H, W, C) with opencv representation of image A (i.e C: B,G,R)
+        img_b (numpy array): of shape (H, W, C) with opencv representation of image B (i.e C: B,G,R)
+        stich_direc (int): 0 for vertical and 1 for horizontal stiching
+
+    Returns:
+        stiched_image (numpy array): stiched image with maximum content of image A and image B after cropping
+            to remove the black space 
+    """
+    img_a_gray = cv2.cvtColor(img_a, cv2.COLOR_BGR2GRAY)
+    img_b_gray = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)
+    matches_a, matches_b = get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8)
+    h_mat = compute_homography_ransac(matches_a, matches_b)
+    if stich_direc == 0:
+        canvas = cv2.warpPerspective(img_b, h_mat, (img_a.shape[1], img_a.shape[0] + img_b.shape[0]))
+        canvas[0:img_a.shape[0], :, :] = img_a[:, :, :]
+        x_start, y_start, x_end, y_end = get_crop_points(h_mat, img_a, img_b, 0)
+    else:
+        canvas = cv2.warpPerspective(img_b, h_mat, (img_a.shape[1] + img_b.shape[1], img_a.shape[0]))
+        canvas[:, 0:img_a.shape[1], :] = img_a[:, :, :]
+        x_start, y_start, x_end, y_end = get_crop_points(h_mat, img_a, img_b, 1)
+    
+    stiched_img = canvas[y_start:y_end,x_start:x_end,:]
+    return stiched_img
+
+def check_imgfile_validity(folder, filenames):
+    """Function to check if the files in the given path are valid image files.
+    
+    Args:
+        folder (str): path containing the image files
+        filenames (list): a list of image filenames
+
+    Returns:
+        valid_files (bool): True if all the files are valid image files else False
+        msg (str): Message that has to be displayed as error
+    """
+    for file in filenames:
+        full_file_path = os.path.join(folder, file)
+        regex = "([^\\s]+(\\.(?i)(jpe?g|png))$)"
+        p = re.compile(regex)
+
+        if not os.path.isfile(full_file_path):
+            return False, "File not found: " + full_file_path
+        if not (re.search(p, file)):
+            return False, "Invalid image file: " + file
+    return True, None
