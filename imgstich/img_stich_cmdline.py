@@ -1,7 +1,7 @@
 import cv2
-import utils
+from imgstich import utils
 import argparse
-import exceptions
+from imgstich import exceptions
 import os
 import time
 
