@@ -2,4 +2,4 @@ __pycache__
 *.pyc
 .ipynb_checkpoints
 develop.ipynb
-img/sample_1
+img/*
