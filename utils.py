@@ -6,6 +6,7 @@ import exceptions
 
 MINIMUM_MATCH_POINTS = 20
 
+
 def get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8):
     '''Function to get matched keypoints from two images using ORB
 
@@ -159,6 +160,7 @@ def compute_homography_ransac(matches_a, matches_b):
             best_i = i
     return best_h_mat
 
+
 def get_crop_points(h_mat, img_a, img_b, stich_direc):
     """Function to find the pixel corners to crop the stiched image such that the black space 
         in the stiched image is removed.
@@ -268,6 +270,7 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
             y_end = btm_rht_y_hat
     return int(x_start), int(y_start), int(x_end), int(y_end)
 
+
 def stich_images(img_a, img_b, stich_direc):
     """Function to stich image B to image A in the mentioned direction
 
@@ -295,6 +298,7 @@ def stich_images(img_a, img_b, stich_direc):
     
     stiched_img = canvas[y_start:y_end,x_start:x_end,:]
     return stiched_img
+
 
 def check_imgfile_validity(folder, filenames):
     """Function to check if the files in the given path are valid image files.
