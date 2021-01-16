@@ -6,3 +6,4 @@ imgstich/img/*
 build/*
 dist/*
 imgstich.egg-info
+.vscode
