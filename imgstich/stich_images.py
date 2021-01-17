@@ -58,7 +58,7 @@ def stich_images_and_save(image_folder, image_filenames, stich_direction, output
     if output_folder is None:
         if not os.path.isdir("output"):
             os.makedirs("output/")
-            output_folder = "output"
+        output_folder = "output"
     full_save_path = os.path.join(output_folder, filename)
     _ = cv2.imwrite(full_save_path, stiched_img)
     print("The stiched image is saved at: " + full_save_path)
