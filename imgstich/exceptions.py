@@ -31,3 +31,16 @@ class NotEnoughMatchPointsError(Exception):
         msg = "There are not enough match points between images in the input images. Required atleast " + \
                str(min_match_points_req) + " matches but could find only " + str(num_match_points) + " matches!"
         super(NotEnoughMatchPointsError, self).__init__(msg)
+
+
+class MatchesNotConfident(Exception):
+    """Exception class that can be called when the outliers matches count to all matches count ratio is
+        above a minimum threshold to calculate the homography matrix confidently.
+    
+    Args:
+        confidence (int): percentage indicating the confidence of match points 
+    """
+    def __init__(self, confidence):
+        msg = "The confidence in the matches is less than the defined threshold and hence the stiching operation \
+        cannot be performed. Perhaps the input images have very less overlapping content to detect good match points!"
+        super(MatchesNotConfident, self).__init__(msg + " Confidence: " + str(confidence))

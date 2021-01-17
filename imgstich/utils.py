@@ -5,7 +5,7 @@ import re
 from imgstich import exceptions
 
 MINIMUM_MATCH_POINTS = 20
-
+CONFIDENCE_THRESH = 65 # confidence percentage threshold of match points used for homography computation
 
 def get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8):
     '''Function to get matched keypoints from two images using ORB
@@ -173,6 +173,9 @@ def compute_homography_ransac(matches_a, matches_b):
             best_h_mat = h_mat
             lowest_outliers_count = outliers_count
             best_i = i
+    best_confidence_obtained = int(100 - (100 * lowest_outliers_count / num_all_matches))
+    if best_confidence_obtained < CONFIDENCE_THRESH:
+        raise(exceptions.MatchesNotConfident(best_confidence_obtained))
     return best_h_mat
 
 
@@ -290,7 +293,7 @@ def get_crop_points_vert(img_a_w, transfmd_corners_img_b):
     elif (btm_rht_x_hat < img_a_w - 1) and (btm_rht_x_hat < top_rht_x_hat):
         x_end = btm_rht_x_hat
     else:
-        x_end = 0
+        x_end = img_a_w - 1
 
     if (btm_lft_y_hat < btm_rht_y_hat):
         y_end = btm_lft_y_hat
@@ -350,7 +353,7 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
     if stich_direc == 1: # 1 is horizontal
         x_start, y_start, x_end, y_end = get_crop_points_horz(img_a_h, transfmd_corners_img_b)
     else: # when stiching images in the vertical direction
-        x_start, y_start, x_end, y_end = get_crop_points_vert(img_a_h, transfmd_corners_img_b)
+        x_start, y_start, x_end, y_end = get_crop_points_vert(img_a_w, transfmd_corners_img_b)
     return x_start, y_start, x_end, y_end
 
 
