@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 import re
-from imgstich import exceptions
+from imgstitch import exceptions
 
 MINIMUM_MATCH_POINTS = 20
 CONFIDENCE_THRESH = 65 # confidence percentage threshold of match points used for homography computation
@@ -204,7 +204,7 @@ def get_corners_as_array(img_height, img_width):
 
 
 def get_crop_points_horz(img_a_h, transfmd_corners_img_b):
-    """Function to find the pixel corners in the horizontally stiched images to crop and remove the
+    """Function to find the pixel corners in the horizontally stitched images to crop and remove the
         black space around.
     
     Args:
@@ -216,10 +216,10 @@ def get_crop_points_horz(img_a_h, transfmd_corners_img_b):
                    bottom_right_x, bottom_right_y;
                    bottom_left_x, bottom_left_y]
     Returns:
-        x_start (int): the x pixel-cordinate to start the crop on the stiched image
-        y_start (int): the x pixel-cordinate to start the crop on the stiched image
-        x_end (int): the x pixel-cordinate to end the crop on the stiched image
-        y_end (int): the y pixel-cordinate to end the crop on the stiched image
+        x_start (int): the x pixel-cordinate to start the crop on the stitched image
+        y_start (int): the x pixel-cordinate to start the crop on the stitched image
+        x_end (int): the x pixel-cordinate to end the crop on the stitched image
+        y_end (int): the y pixel-cordinate to end the crop on the stitched image
     """
     # the four transformed corners of image B
     top_lft_x_hat, top_lft_y_hat = transfmd_corners_img_b[0, :]
@@ -254,7 +254,7 @@ def get_crop_points_horz(img_a_h, transfmd_corners_img_b):
 
 
 def get_crop_points_vert(img_a_w, transfmd_corners_img_b):
-    """Function to find the pixel corners in the vertically stiched images to crop and remove the
+    """Function to find the pixel corners in the vertically stitched images to crop and remove the
         black space around.
     
     Args:
@@ -266,10 +266,10 @@ def get_crop_points_vert(img_a_w, transfmd_corners_img_b):
                    bottom_right_x, bottom_right_y;
                    bottom_left_x, bottom_left_y]
     Returns:
-        x_start (int): the x pixel-cordinate to start the crop on the stiched image
-        y_start (int): the x pixel-cordinate to start the crop on the stiched image
-        x_end (int): the x pixel-cordinate to end the crop on the stiched image
-        y_end (int): the y pixel-cordinate to end the crop on the stiched image
+        x_start (int): the x pixel-cordinate to start the crop on the stitched image
+        y_start (int): the x pixel-cordinate to start the crop on the stitched image
+        x_end (int): the x pixel-cordinate to end the crop on the stitched image
+        y_end (int): the y pixel-cordinate to end the crop on the stitched image
     """
     # the four transformed corners of image B
     top_lft_x_hat, top_lft_y_hat = transfmd_corners_img_b[0, :]
@@ -303,13 +303,13 @@ def get_crop_points_vert(img_a_w, transfmd_corners_img_b):
     return int(x_start), int(y_start), int(x_end), int(y_end)
 
 
-def get_crop_points(h_mat, img_a, img_b, stich_direc):
-    """Function to find the pixel corners to crop the stiched image such that the black space 
-        in the stiched image is removed.
+def get_crop_points(h_mat, img_a, img_b, stitch_direc):
+    """Function to find the pixel corners to crop the stitched image such that the black space 
+        in the stitched image is removed.
         The black space could be because either image B is not of the same dimensions as image A
         or image B is skewed after homographic transformation.
         Example: 
-                  (Horizontal stiching)
+                  (Horizontal stitching)
                 ____________                     _________________
                 |           |                    |                |
                 |           |__________          |                |
@@ -327,13 +327,13 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
         h_mat (numpy array): of shape (3, 3) representing the homography from image B to image A
         img_a (numpy array): of shape (h, w, c) representing image A
         img_b (numpy array): of shape (h, w, c) representing image B
-        stich_direc (int): 0 when stiching vertically and 1 when stiching horizontally
+        stitch_direc (int): 0 when stitching vertically and 1 when stitching horizontally
 
     Returns:
-        x_start (int): the x pixel-cordinate to start the crop on the stiched image
-        y_start (int): the x pixel-cordinate to start the crop on the stiched image
-        x_end (int): the x pixel-cordinate to end the crop on the stiched image
-        y_end (int): the y pixel-cordinate to end the crop on the stiched image          
+        x_start (int): the x pixel-cordinate to start the crop on the stitched image
+        y_start (int): the x pixel-cordinate to start the crop on the stitched image
+        x_end (int): the x pixel-cordinate to end the crop on the stitched image
+        y_end (int): the y pixel-cordinate to end the crop on the stitched image          
     """
     img_a_h, img_a_w, _ = img_a.shape
     img_b_h, img_b_w, _ = img_b.shape
@@ -342,7 +342,7 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
                 
     transfmd_corners_img_b = transform_with_homography(h_mat, orig_corners_img_b)
 
-    if stich_direc == 1:
+    if stitch_direc == 1:
         x_start, y_start, x_end, y_end = get_crop_points_horz(img_a_w, transfmd_corners_img_b)
     # initialize the crop points
     x_start = None
@@ -350,30 +350,30 @@ def get_crop_points(h_mat, img_a, img_b, stich_direc):
     y_start = None
     y_end = None
 
-    if stich_direc == 1: # 1 is horizontal
+    if stitch_direc == 1: # 1 is horizontal
         x_start, y_start, x_end, y_end = get_crop_points_horz(img_a_h, transfmd_corners_img_b)
-    else: # when stiching images in the vertical direction
+    else: # when stitching images in the vertical direction
         x_start, y_start, x_end, y_end = get_crop_points_vert(img_a_w, transfmd_corners_img_b)
     return x_start, y_start, x_end, y_end
 
 
-def stich_image_pair(img_a, img_b, stich_direc):
-    """Function to stich image B to image A in the mentioned direction
+def stitch_image_pair(img_a, img_b, stitch_direc):
+    """Function to stitch image B to image A in the mentioned direction
 
     Args:
         img_a (numpy array): of shape (H, W, C) with opencv representation of image A (i.e C: B,G,R)
         img_b (numpy array): of shape (H, W, C) with opencv representation of image B (i.e C: B,G,R)
-        stich_direc (int): 0 for vertical and 1 for horizontal stiching
+        stitch_direc (int): 0 for vertical and 1 for horizontal stitching
 
     Returns:
-        stiched_image (numpy array): stiched image with maximum content of image A and image B after cropping
+        stitched_image (numpy array): stitched image with maximum content of image A and image B after cropping
             to remove the black space 
     """
     img_a_gray = cv2.cvtColor(img_a, cv2.COLOR_BGR2GRAY)
     img_b_gray = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)
     matches_a, matches_b = get_matches(img_a_gray, img_b_gray, num_keypoints=1000, threshold=0.8)
     h_mat = compute_homography_ransac(matches_a, matches_b)
-    if stich_direc == 0:
+    if stitch_direc == 0:
         canvas = cv2.warpPerspective(img_b, h_mat, (img_a.shape[1], img_a.shape[0] + img_b.shape[0]))
         canvas[0:img_a.shape[0], :, :] = img_a[:, :, :]
         x_start, y_start, x_end, y_end = get_crop_points(h_mat, img_a, img_b, 0)
@@ -382,8 +382,8 @@ def stich_image_pair(img_a, img_b, stich_direc):
         canvas[:, 0:img_a.shape[1], :] = img_a[:, :, :]
         x_start, y_start, x_end, y_end = get_crop_points(h_mat, img_a, img_b, 1)
     
-    stiched_img = canvas[y_start:y_end,x_start:x_end,:]
-    return stiched_img
+    stitched_img = canvas[y_start:y_end,x_start:x_end,:]
+    return stitched_img
 
 
 def check_imgfile_validity(folder, filenames):
