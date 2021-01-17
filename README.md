@@ -26,7 +26,7 @@ $ pip install -i https://test.pypi.org/simple/ imgstich
 
 There are two functions that can be primarily used:
  
- #### `stich_images(image_folder, image_filenames, stich_direction)`
+#### `stich_images(image_folder, image_filenames, stich_direction)`
 
  Args:
 
