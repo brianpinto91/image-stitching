@@ -65,21 +65,21 @@ Returns:
 Returns:
  - **`None`**
 
-    The image is saved in the specified directiory or the default directory with a time stamp attached to the filename (stitched_image_yyyymmdd_hhmmss.jpg)
+    The image is saved in the specified directory or the default directory with a time stamp attached to the filename (stitched_image_yyyymmdd_hhmmss.jpg)
 
 ## Implementation
 
-For keypoints and feature detection, the **Oriented FAST and rotated BRIEF (ORB)** [[1]](#1) algorithm is used from the **opencv** package.
+For keypoints and feature detection, the **Oriented FAST and Rotated BRIEF (ORB)** [[1]](#1) algorithm is used from the **opencv** package.
 
-Once the keypoints and featurs descriptors are obatained from a pair of images, **brute-force-matching** is performed using **hamming distance** as the metric. For each point in one image, two points with lowest **hamming distance** in the other image is obtained first. Later only those points are filtered where the two lowest **hamming distance** points for any point have difference greater than a certain threshold.
+Once the keypoints and features descriptors are obtained from a pair of images, **brute-force-matching** is performed using **hamming distance** as the metric. For each point in one image, two points with lowest **hamming distance** in the other image is obtained first. Later only those points are filtered where the two lowest **hamming distance** points for any point have difference greater than a certain threshold.
 
 With a list of matched points between two images, the homography matrix can be computed. However there can be oulier matches. In order to minimize the effect of outliers and to obtain the best homography matrix, **RANSAC** [[2]](#2) algorithm is used.
 
-Once a homography is obtained from one image to the other image, **opencv's** warp perspective function is used to tranform the second image into the perspective of the first. The resultant image might be warped edges because of the change in perspective. Also, if the images are not of the same size, then there would be empty pixels in the stitched image. Therefore, I have implemented a method to elegantly remove these empty pixels and retain the maximum image information between a pair of images.
+Once a homography is obtained from one image to the other image, **opencv's** warp perspective function is used to transform the second image into the perspective of the first. The resultant image might be warped edges because of the change in perspective. Also, if the images are not of the same size, then there would be empty pixels in the stitched image. Therefore, I have implemented a method to elegantly remove these empty pixels and retain the maximum image information between a pair of images.
 
 ## Demo
 
-I took a single picture of a scene, and then randomly selected overlapping parts from the picture to get three seperate parts representing a scene. Of course, this represents perfect conditions for stitching images because them come from a single camera shot. 
+I took a single picture of a scene, and then randomly selected overlapping parts from the picture to get three separate parts representing a scene. Of course, this represents perfect conditions for stitching images because them come from a single camera shot. 
 
 ### **Horizontal stitching**
 
