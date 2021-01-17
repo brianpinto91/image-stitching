@@ -117,7 +117,7 @@ And the stiched image is:
 </div>
 
 ## License
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE.md)
 
 Copyright 2021 Brian Pinto
 
