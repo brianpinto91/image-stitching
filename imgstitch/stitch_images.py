@@ -1,5 +1,5 @@
-from imgstitch import utils
-from imgstitch import exceptions
+from . import utils
+from . import exceptions
 import os
 import cv2
 import time
